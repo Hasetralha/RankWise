@@ -628,6 +628,9 @@ video {
 .ml-3 {
   margin-left: 0.75rem;
 }
+.ml-64 {
+  margin-left: 16rem;
+}
 .mr-2 {
   margin-right: 0.5rem;
 }
@@ -660,9 +663,6 @@ video {
 }
 .mt-auto {
   margin-top: auto;
-}
-.ml-64 {
-  margin-left: 16rem;
 }
 .block {
   display: block;

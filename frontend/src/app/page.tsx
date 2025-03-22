@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useUser } from '../context/UserContext';
 
 const features = [
   {
@@ -47,32 +48,39 @@ const testimonials = [
 ];
 
 export default function HomePage() {
+  const { user } = useUser();
+
   return (
-    <div className="bg-white">
-      {/* Header/Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation */}
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-indigo-600">RankWise</h1>
+            <div className="flex">
+              <div className="flex-shrink-0 flex items-center">
+                <span className="text-2xl font-bold text-indigo-600">RankWise</span>
+              </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <Link 
-                href="/dashboard"
-                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/dashboard"
-                className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-medium"
-              >
-                Get Started
-              </Link>
+            <div className="flex items-center">
+              {user ? (
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Log in
+                </Link>
+              )}
             </div>
           </div>
-        </nav>
-      </header>
+        </div>
+      </nav>
 
       {/* Hero Section */}
       <div className="pt-24 pb-8 sm:pt-32 sm:pb-12">

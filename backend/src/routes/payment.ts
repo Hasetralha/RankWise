@@ -1,8 +1,8 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import Stripe from 'stripe';
 import { authenticateToken } from '../middleware/auth';
 
-const router = express.Router();
+export const router = express.Router();
 
 // Initialize stripe only if credentials are available
 let stripe: Stripe | undefined;
@@ -12,7 +12,7 @@ if (process.env.STRIPE_SECRET_KEY) {
   });
 }
 
-router.post('/checkout', authenticateToken, async (req, res) => {
+router.post('/checkout', authenticateToken, async (req: Request, res: Response) => {
   if (!stripe) {
     return res.status(503).json({ 
       error: 'Payment service not configured',
@@ -22,7 +22,11 @@ router.post('/checkout', authenticateToken, async (req, res) => {
 
   try {
     const { priceId } = req.body;
-    const user = req.user as { email: string };
+    const user = req.user;
+
+    if (!user) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -45,7 +49,7 @@ router.post('/checkout', authenticateToken, async (req, res) => {
   }
 });
 
-router.post('/webhook', async (req, res) => {
+router.post('/webhook', async (req: Request, res: Response) => {
   if (!stripe) {
     return res.status(503).json({ 
       error: 'Payment service not configured',
@@ -83,6 +87,4 @@ router.post('/webhook', async (req, res) => {
     console.error('Webhook error:', err.message);
     res.status(400).json({ error: `Webhook Error: ${err.message}` });
   }
-});
-
-export const paymentRoutes = router; 
+}); 

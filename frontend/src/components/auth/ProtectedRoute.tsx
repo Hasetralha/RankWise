@@ -1,13 +1,25 @@
 'use client';
 
-import React, { ReactNode } from 'react';
-import { useAuth } from '../../../contexts/AuthContext';
+import React, { ReactNode, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '../../utils/api';
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  // During development, always render children without authentication check
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/login');
+    }
+  }, [router]);
+
+  if (!isAuthenticated()) {
+    return null;
+  }
+
   return <>{children}</>;
 } 

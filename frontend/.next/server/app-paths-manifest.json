@@ -1,4 +1,9 @@
 {
   "/page": "app/page.js",
-  "/dashboard/page": "app/dashboard/page.js"
+  "/login/page": "app/login/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/settings/page": "app/dashboard/settings/page.js",
+  "/dashboard/meta-tags/page": "app/dashboard/meta-tags/page.js",
+  "/dashboard/sitemap/page": "app/dashboard/sitemap/page.js",
+  "/dashboard/content-analysis/page": "app/dashboard/content-analysis/page.js"
 }

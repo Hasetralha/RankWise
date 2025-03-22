@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 
 if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Please add your Stripe Secret Key to .env.local');
+  throw new Error('Missing environment variable: STRIPE_SECRET_KEY');
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {

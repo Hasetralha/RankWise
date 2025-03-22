@@ -7,6 +7,40 @@ interface ApiResponse {
   token?: string;
 }
 
+export interface UserSettings {
+  notifications: {
+    email: boolean;
+    browser: boolean;
+    weeklyDigest: boolean;
+    sitemapUpdates: boolean;
+    securityAlerts: boolean;
+  };
+  preferences: {
+    defaultChangeFreq: string;
+    defaultPriority: string;
+    darkMode: boolean;
+    language: string;
+    timezone: string;
+    dateFormat: string;
+  };
+  security: {
+    twoFactorEnabled: boolean;
+    lastPasswordChange: string;
+  };
+}
+
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  company?: string;
+  role?: string;
+  settings: UserSettings;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const handleApiError = async (response: Response) => {
   try {
     const contentType = response.headers.get("content-type");
@@ -26,10 +60,8 @@ const handleApiError = async (response: Response) => {
   }
 };
 
-export const loginUser = async (email: string, password: string): Promise<string> => {
+export const loginUser = async (email: string, password: string): Promise<{ user: User; token: string }> => {
   try {
-    console.log('Attempting login to:', `${API_BASE_URL}/auth/login`);
-    
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -44,23 +76,26 @@ export const loginUser = async (email: string, password: string): Promise<string
 
     const data: ApiResponse = await response.json();
     
-    if (!data.success || !data.token) {
+    if (!data.success || !data.token || !data.data) {
       throw new Error(data.message || 'Login failed');
     }
 
     // Store the token
     localStorage.setItem('token', data.token);
-    return data.token;
+    localStorage.setItem('user', JSON.stringify(data.data));
+
+    return {
+      user: data.data,
+      token: data.token
+    };
   } catch (error) {
     console.error('Login error:', error);
     throw error;
   }
 };
 
-export const registerUser = async (name: string, email: string, password: string): Promise<string> => {
+export const registerUser = async (name: string, email: string, password: string): Promise<{ user: User; token: string }> => {
   try {
-    console.log('Attempting registration to:', `${API_BASE_URL}/auth/register`);
-    
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: {
@@ -75,13 +110,18 @@ export const registerUser = async (name: string, email: string, password: string
 
     const data: ApiResponse = await response.json();
     
-    if (!data.success || !data.token) {
+    if (!data.success || !data.token || !data.data) {
       throw new Error(data.message || 'Registration failed');
     }
 
     // Store the token
     localStorage.setItem('token', data.token);
-    return data.token;
+    localStorage.setItem('user', JSON.stringify(data.data));
+
+    return {
+      user: data.data,
+      token: data.token
+    };
   } catch (error) {
     console.error('Registration error:', error);
     throw error;
@@ -98,4 +138,95 @@ export const isAuthenticated = (): boolean => {
 export const getToken = (): string | null => {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('token');
+};
+
+// Helper function to get the current user
+export const getCurrentUser = (): User | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  } catch (error) {
+    console.error('Error parsing user data:', error);
+    return null;
+  }
+};
+
+// Helper function to logout
+export const logout = (): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    // Clear any other user-related data
+    localStorage.removeItem('metaTags');
+    localStorage.removeItem('contentAnalyses');
+    localStorage.removeItem('sitemaps');
+  } catch (error) {
+    console.error('Error during logout:', error);
+  }
+};
+
+export const updateUserSettings = async (settings: Partial<User>): Promise<User> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/settings`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify(settings),
+    });
+
+    if (!response.ok) {
+      await handleApiError(response);
+    }
+
+    const data: ApiResponse = await response.json();
+    
+    if (!data.success || !data.data) {
+      throw new Error(data.message || 'Failed to update settings');
+    }
+
+    // Update local storage
+    localStorage.setItem('user', JSON.stringify(data.data));
+
+    return data.data;
+  } catch (error) {
+    console.error('Settings update error:', error);
+    throw error;
+  }
+};
+
+export const uploadAvatar = async (file: File): Promise<User> => {
+  try {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const response = await fetch(`${API_BASE_URL}/users/avatar`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${getToken()}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      await handleApiError(response);
+    }
+
+    const data: ApiResponse = await response.json();
+    
+    if (!data.success || !data.data) {
+      throw new Error(data.message || 'Failed to upload avatar');
+    }
+
+    // Update local storage
+    localStorage.setItem('user', JSON.stringify(data.data));
+
+    return data.data;
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    throw error;
+  }
 }; 

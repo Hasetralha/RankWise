@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { paymentRoutes } from './routes/payment';
-import { authRoutes } from './routes/auth';
+import { router as paymentRoutes } from './routes/payment';
+import authRoutes from './routes/auth';
 import { seoRoutes } from './routes/seo';
-import { connectDB } from './utils/database';
+import { connectToDb, closeDb } from './lib/db';
 
 // Load environment variables first
 dotenv.config();
@@ -28,7 +28,7 @@ app.use(cors({
 app.use(express.json());
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/seo', seoRoutes);
 
@@ -36,7 +36,8 @@ app.use('/api/seo', seoRoutes);
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ 
-    error: process.env.NODE_ENV === 'production' 
+    success: false,
+    message: process.env.NODE_ENV === 'production' 
       ? 'Internal server error' 
       : err.message 
   });
@@ -45,9 +46,19 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 // Initialize database and start server
 const startServer = async () => {
   try {
-    await connectDB();
-    app.listen(port, () => {
+    await connectToDb();
+    const server = app.listen(port, () => {
       console.log(`Server is running on port ${port}`);
+    });
+
+    // Handle graceful shutdown
+    process.on('SIGTERM', async () => {
+      console.log('SIGTERM signal received. Closing HTTP server and database connection');
+      await closeDb();
+      server.close(() => {
+        console.log('HTTP server closed');
+        process.exit(0);
+      });
     });
   } catch (error) {
     console.error('Failed to start server:', error);

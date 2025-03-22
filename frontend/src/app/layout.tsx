@@ -1,28 +1,31 @@
-import React from 'react'
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import '../styles/globals.css'
-import ClientLayout from '../components/layout/ClientLayout'
+import { Inter } from 'next/font/google';
+import '../styles/globals.css';
+import Providers from '../components/layout/Providers';
+import { Metadata } from 'next';
 
-const inter = Inter({ subsets: ['latin'] })
-
-export const metadata: Metadata = {
-  title: 'RankWise - SEO Tools',
-  description: 'All-in-one SEO toolkit for content creators and small businesses',
-}
+const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <ClientLayout>
-          {children}
-        </ClientLayout>
+    <html lang="en" className={inter.className}>
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+      </head>
+      <body>
+        <Providers>{children}</Providers>
       </body>
     </html>
-  )
-} 
+  );
+}
+
+export const metadata: Metadata = {
+  title: 'RankWise',
+  description: 'Rank and manage your tasks efficiently',
+  icons: {
+    icon: '/favicon.svg',
+  },
+}; 
